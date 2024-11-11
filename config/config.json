@@ -1,0 +1,36 @@
+{
+    "model_config": {
+        "model": "DKVMN_RE",
+        "hidden_dim": 50,
+        "embed_dim": 128,
+        "output_dim": 100,
+        "dropout": 0.2,
+        "memory_size": 20,
+        "n_heads": 4,
+        "graph_type": "PAM",
+        "edge_types": 2
+},
+    "train_config": {
+        "lr": 0.0001,
+        "current_epoch": 0,
+        "n_epochs": 20,
+        "batch_size": 256,
+        "max_seq_len": 200,
+        "shuffle": false,
+        "cuda": true,
+        "data_augment": false,
+        "pretrain": "load",
+        "pretrain_embed_file": "",
+        "log_file": ""
+    },
+    "dataset_config": {
+        "dataset": "ednet-re",
+        "checkpoint_dir": null,
+        "train_from_scratch": false,
+        "eval": false,
+        "custom_data": false,
+        "skill_level_eval": false,
+        "s_num": -1,
+        "q_num": -1
+    }
+}
