@@ -4,6 +4,7 @@ from kt.dataloaders.base_loader import BaseLoader
 from kt.logger import KTLogger
 logger = KTLogger().get_logger()
 
+
 class Assistment09Loader(BaseLoader):
     """
     Loader for the Assistment 2009 dataset with optional extra field loading.
@@ -81,10 +82,11 @@ class Assistment09Loader(BaseLoader):
                 # Create a dictionary of all relevant fields for each interaction
                 interaction = {field: row[field] for field in self.fields if field in df_user.columns}
                 sequence.append(interaction)
-                #logger.info(interaction)
+                # logger.info(interaction)
             user_sequences[uid] = sequence
         return user_sequences    
-    def _get_qs_relationship(self,df: pd.DataFrame, q_key:str, s_key: str):        
+    
+    def _get_qs_relationship(self, df: pd.DataFrame, q_key: str, s_key: str):        
         qs_counts = df.groupby([q_key, s_key]).size().reset_index(name='count')
         sq_counts = df.groupby([s_key, q_key]).size().reset_index(name='count')
         

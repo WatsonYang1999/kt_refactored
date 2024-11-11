@@ -31,5 +31,7 @@ class TestAssistment09Loader(unittest.TestCase):
                 self.assertGreater(len(loaders[dataset_type][k]), 0)
 
         self.assertEqual(len(loaders), 3)
+        
+        
 if __name__ == "__main__":
     unittest.main()
