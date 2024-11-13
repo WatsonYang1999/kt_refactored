@@ -10,6 +10,28 @@ class KTConfig:
         else:
             raise ValueError("Either from_args must be True or a json_file must be provided.")
 
+        self._set_dataset_config()
+        self._set_model_config()
+        self._set_train_config()
+        
+    def get_model_config(  )
+    def _set_model_config(self):
+        """Returns only the model configuration."""
+        model_keys = {'model', 'hidden_dim', 'embed_dim', 'output_dim', 'dropout', 'memory_size', 'n_heads', 'graph_type', 'edge_types'}
+        self.model_config = {k: v for k, v in vars(self.args).items() if k in model_keys}
+
+    def _set_train_config(self):
+        """Returns only the training configuration."""
+        train_keys = {'lr', 'current_epoch', 'n_epochs', 'batch_size', 'max_seq_len', 'shuffle', 'cuda', 'data_augment', 'pretrain', 'pretrain_embed_file', 'log_file'}
+        self.train_config = {k: v for k, v in vars(self.args).items() if k in train_keys}
+
+    def _set_dataset_config(self):
+        """Returns only the dataset configuration."""
+        dataset_keys = {'dataset', 'checkpoint_dir', 'train_from_scratch', 'eval', 'custom_data', 'skill_level_eval', 's_num', 'q_num'}
+        self.dataset_config = {k: v for k, v in vars(self.args).items() if k in dataset_keys}
+
+
+
     def _parse_args(self):
         def str_to_bool(s):
             return s.lower() == 'true'
@@ -71,7 +93,12 @@ class KTConfig:
             # Merge all configurations
             all_configs = {**model_config, **train_config, **dataset_config}
             return argparse.Namespace(**all_configs)
-
+            
+            
+    def update_qs(self, q_num, s_num, qs_matrix):
+        self.model_config['q_num'] = q_num
+        self.model_config['s_num'] = s_num
+        self.model_config['qs_matrix'] = qs_matrix
 # Example usage
 # config_from_args = KTConfig(from_args=True)
 # config_from_json = KTConfig(from_args=False, json_file='config.json')

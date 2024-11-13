@@ -37,10 +37,30 @@ class Assistment09Loader(BaseLoader):
         self.load_extra_fields = load_extra_fields
         self.q_key = 'problem_id'
         self.s_key = 'skill_id'
-
+        
+        self.q_num = None
+        self.s_num = None
+        self.qs_matrix = None
+        
         self.user_sequences = self._load()
 
-
+    def get_q_num(self):
+        if self.q_num is None:
+            raise NotImplementedError('q_num not init yet')
+        return self.q_num
+    def get_s_num(self):
+        if self.s_num is None:
+            raise NotImplementedError('s_num not init yet')
+        return self.s_num
+    
+    def get_qs_matrix(self):
+        if self.qs_matrix is None:
+            raise NotImplementedError('qs_matrix not init yet')
+    
+        return self.qs_matrix
+    
+    def get_qn_sn_qs_matrix(self):
+        return (self.get_q_num(), self.get_s_num(), self.get_qs_matrix()) 
 
     def _load(self):
         """Load and clean the Assistment 2009 dataset, returning user sequences."""
@@ -57,7 +77,7 @@ class Assistment09Loader(BaseLoader):
             df[self.q_key] += 1
             df[self.s_key] += 1
 
-            self._get_qs_relationship(df, q_key=self.q_key, s_key=self.s_key)
+            self._calculate_qs_relationship(df, q_key=self.q_key, s_key=self.s_key)
 
             logger.info(f'Original Data Count {df.shape[0]}')
             df = df.drop_duplicates(subset='order_id')
@@ -86,37 +106,40 @@ class Assistment09Loader(BaseLoader):
             user_sequences[uid] = sequence
         return user_sequences    
     
-    def _get_qs_relationship(self, df: pd.DataFrame, q_key: str, s_key: str):        
+    def _calculate_qs_relationship(self, df: pd.DataFrame, q_key: str, s_key: str):        
         qs_counts = df.groupby([q_key, s_key]).size().reset_index(name='count')
         sq_counts = df.groupby([s_key, q_key]).size().reset_index(name='count')
         
         logger.info(qs_counts)
         logger.info(sq_counts)
 
-        q_to_s_count = df.groupby(q_key)[s_key].nunique()
+        # q_to_s_count = df.groupby(q_key)[s_key].nunique()
 
-        # 统计每个 B 对应的 A 的数量
-        s_to_q_count = df.groupby(s_key)[q_key].nunique()
+        # # 统计每个 B 对应的 A 的数量
+        # s_to_q_count = df.groupby(s_key)[q_key].nunique()
 
         # 计算 A 平均对应几个 B
-        avg_q_to_s = q_to_s_count.mean()
+        # avg_q_to_s = q_to_s_count.mean()
 
-        # 计算 B 平均对应几个 A
-        avg_s_to_q = s_to_q_count.mean()
+        # # 计算 B 平均对应几个 A
+        # avg_s_to_q = s_to_q_count.mean()
 
-        # 输出结果
-        print(f"每个 q 平均对应 {avg_q_to_s:.2f} 个 s")
-        print(f"每个 s 平均对应 {avg_s_to_q:.2f} 个 q")
+        # # 输出结果
+        # print(f"每个 q 平均对应 {avg_q_to_s:.2f} 个 s")
+        # print(f"每个 s 平均对应 {avg_s_to_q:.2f} 个 q")
 
         q_unique = df[q_key].unique().tolist()
         s_unique = df[s_key].unique().tolist()
+        
+        self.q_num = q_unique
+        self.s_num = s_unique
         
         self.qs_matrix = np.zeros((len(q_unique) + 1, len(s_unique) + 1), dtype=int)
 
         for _, row in df.iterrows():
             self.qs_matrix[row[self.q_key], row[self.s_key]] = 1
-        print(f"每个 q 平均对应 {np.sum(self.qs_matrix) / (self.qs_matrix.shape[0] - 1):.2f} 个 s")
-        print(f"每个 s 平均对应 {np.sum(self.qs_matrix) / (self.qs_matrix.shape[1] - 1):.2f} 个 q")
+        # print(f"每个 q 平均对应 {np.sum(self.qs_matrix) / (self.qs_matrix.shape[0] - 1):.2f} 个 s")
+        # print(f"每个 s 平均对应 {np.sum(self.qs_matrix) / (self.qs_matrix.shape[1] - 1):.2f} 个 q")
 
 if __name__ == '__main__':
     loader = Assistment09Loader()
