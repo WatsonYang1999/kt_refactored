@@ -1,4 +1,5 @@
 def get_model(model_config):
+    print(model_config)
     if model_config['model'] == 'AKT':
         from .akt import AKT
         return AKT(s_num=100,
@@ -10,4 +11,4 @@ def get_model(model_config):
                    model_type='akt',
                    l2=1e-5
                    )
-
+    raise NotImplementedError(f"Model {model_config['model']} Not Supported Yet")

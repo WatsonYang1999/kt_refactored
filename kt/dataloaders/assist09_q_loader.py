@@ -68,6 +68,8 @@ class Assistment09Loader(BaseLoader):
             # Load specified fields with predefined data types
             df = pd.read_csv(self.file_path, usecols=self.fields, dtype={k: self.dtypes[k] for k in self.fields}, encoding='utf-8')
 
+            # ToDo: 
+            df = df.head(50)
             # df = df.sort_values('order_id', ascending=True).dropna().drop_duplicates(subset='order_id')
             df = df.sort_values('order_id', ascending=True).dropna()
 

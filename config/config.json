@@ -1,6 +1,6 @@
 {
     "model_config": {
-        "model": "DKVMN_RE",
+        "model": "AKT",
         "hidden_dim": 50,
         "embed_dim": 128,
         "output_dim": 100,

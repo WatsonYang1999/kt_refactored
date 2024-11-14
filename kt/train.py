@@ -1,9 +1,13 @@
 import torch
 from torch.utils.data import DataLoader
 import os
+from kt.interaction_dataset import UserInteractionDataset
 
+
+def move_batch_to_device(batch, device):
+    return {key: value.to(device) for key, value in batch.items()}
 class TrainManager:
-    def __init__(self, model_class, dataset_class, config):
+    def __init__(self, model, dataset_loader, config):
         """
         初始化 TrainManager 实例。
         
@@ -12,23 +16,28 @@ class TrainManager:
         - dataset_class: 要加载的数据集类。
         - config: 包含训练配置的字典。
         """
+        print(config)
         self.config = config
         self.device = torch.device("cuda" if config['cuda'] and torch.cuda.is_available() else "cpu")
         
         # 初始化模型并加载到设备
-        self.model = model_class().to(self.device)
+        self.model = model.to(self.device)
         self.optimizer = torch.optim.Adam(self.model.parameters(), lr=config['lr'])
-        self.criterion = torch.nn.BCELoss() if config['loss'] == 'binary' else torch.nn.CrossEntropyLoss()
+        self.criterion = self._load_loss_function(config['loss'])
         
         # 加载数据集并创建 DataLoader
+        print('---------------------------------------')
+        print(dataset_loader.get_loader()['train'])
         self.train_loader = DataLoader(
-            dataset_class(train=True, config=config),
+            UserInteractionDataset(dataset_loader.get_loader()['train'],max_length=config['max_seq_len']),
             batch_size=config['batch_size'],
             shuffle=config['shuffle']
         )
+        print('---------------------------------------')
+
         
         self.valid_loader = DataLoader(
-            dataset_class(train=False, config=config),
+            dataset_loader.get_loader()['test'],
             batch_size=config['batch_size'],
             shuffle=False
         )
@@ -43,9 +52,13 @@ class TrainManager:
             self._load_pretrained_weights(config['pretrain_embed_file'])
         
         # 检查点目录
-        self.checkpoint_dir = config['checkpoint_dir']
-        if self.checkpoint_dir and not os.path.exists(self.checkpoint_dir):
-            os.makedirs(self.checkpoint_dir)
+        # self.checkpoint_dir = config['checkpoint_dir']
+        # if self.checkpoint_dir and not os.path.exists(self.checkpoint_dir):
+        #     os.makedirs(self.checkpoint_dir)
+            
+    def _load_loss_function(self, loss_type):
+        from kt.model.loss import KTLoss
+        return KTLoss()
 
     def _load_pretrained_weights(self, weight_file):
         if os.path.exists(weight_file):
@@ -70,7 +83,7 @@ class TrainManager:
         total_loss = 0.0
         
         for batch in self.train_loader:
-            inputs, labels = batch
+            print(batch)
             inputs, labels = inputs.to(self.device), labels.to(self.device)
             
             # Forward pass

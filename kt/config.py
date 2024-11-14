@@ -14,7 +14,15 @@ class KTConfig:
         self._set_model_config()
         self._set_train_config()
         
-    def get_model_config(  )
+    def get_model_config(self):
+        return self.model_config
+    
+    def get_dataset_config(self):
+        return self.dataset_config
+    
+    def get_train_config(self):
+        return self.train_config
+    
     def _set_model_config(self):
         """Returns only the model configuration."""
         model_keys = {'model', 'hidden_dim', 'embed_dim', 'output_dim', 'dropout', 'memory_size', 'n_heads', 'graph_type', 'edge_types'}
@@ -22,7 +30,7 @@ class KTConfig:
 
     def _set_train_config(self):
         """Returns only the training configuration."""
-        train_keys = {'lr', 'current_epoch', 'n_epochs', 'batch_size', 'max_seq_len', 'shuffle', 'cuda', 'data_augment', 'pretrain', 'pretrain_embed_file', 'log_file'}
+        train_keys = {'lr', 'loss', 'current_epoch', 'n_epochs', 'batch_size', 'max_seq_len', 'shuffle', 'cuda', 'data_augment', 'pretrain', 'pretrain_embed_file', 'log_file'}
         self.train_config = {k: v for k, v in vars(self.args).items() if k in train_keys}
 
     def _set_dataset_config(self):
