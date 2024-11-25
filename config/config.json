@@ -18,7 +18,7 @@
         "batch_size": 256,
         "max_seq_len": 200,
         "shuffle": false,
-        "cuda": true,
+        "device": "cpu",
         "data_augment": false,
         "pretrain": "load",
         "pretrain_embed_file": "",

@@ -84,10 +84,10 @@ class TrainManager:
         
         for batch in self.train_loader:
             print(batch)
-            inputs, labels = inputs.to(self.device), labels.to(self.device)
+            batch = move_batch_to_device(batch,device=self.config['device'])
             
             # Forward pass
-            outputs = self.model(inputs)
+            outputs = self.model(batch)
             loss = self.criterion(outputs, labels)
             
             # Backward and optimize
