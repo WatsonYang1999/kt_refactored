@@ -2,17 +2,28 @@ import argparse
 import json
 
 class KTConfig:
-    def __init__(self, from_args=True, json_file=None):
-        if from_args:
-            self.args = self._parse_args()
-        elif json_file:
-            self.args = self._load_from_json(json_file)
-        else:
-            raise ValueError("Either from_args must be True or a json_file must be provided.")
+    def __init__(self, json_file):
+        self.args = self._load_from_json(json_file)
+        self.model_config = self._extract_config_section("model_config")
+        self.train_config = self._extract_config_section("train_config")
+        self.dataset_config = self._extract_config_section("dataset_config")
 
-        self._set_dataset_config()
-        self._set_model_config()
-        self._set_train_config()
+    def _load_from_json(self, json_file):
+        with open(json_file, 'r') as f:
+            config = json.load(f)
+            # Merge all configurations
+            all_configs = {}
+            for key, section in config.items():
+                if isinstance(section, dict):
+                    all_configs.update(section)
+            return argparse.Namespace(**all_configs)
+
+    def _extract_config_section(self, section_name):
+        """Dynamically extracts a specific configuration section."""
+        with open(json_file, 'r') as f:
+            config = json.load(f)
+            return {k: v for k, v in vars(self.args).items() if k in config.get(section_name, {})}
+
         
     def get_model_config(self):
         return self.model_config
@@ -23,22 +34,6 @@ class KTConfig:
     def get_train_config(self):
         return self.train_config
     
-    def _set_model_config(self):
-        """Returns only the model configuration."""
-        model_keys = {'model', 'hidden_dim', 'embed_dim', 'output_dim', 'dropout', 'memory_size', 'n_heads', 'graph_type', 'edge_types'}
-        self.model_config = {k: v for k, v in vars(self.args).items() if k in model_keys}
-
-    def _set_train_config(self):
-        """Returns only the training configuration."""
-        train_keys = {'lr', 'loss', 'current_epoch', 'n_epochs', 'batch_size', 'max_seq_len', 'shuffle', 'cuda', 'data_augment', 'pretrain', 'pretrain_embed_file', 'log_file'}
-        self.train_config = {k: v for k, v in vars(self.args).items() if k in train_keys}
-
-    def _set_dataset_config(self):
-        """Returns only the dataset configuration."""
-        dataset_keys = {'dataset', 'checkpoint_dir', 'train_from_scratch', 'eval', 'custom_data', 'skill_level_eval', 's_num', 'q_num'}
-        self.dataset_config = {k: v for k, v in vars(self.args).items() if k in dataset_keys}
-
-
 
     def _parse_args(self):
         def str_to_bool(s):
