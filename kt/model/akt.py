@@ -84,7 +84,6 @@ class AKT(nn.Module):
             pid_data = feed_dict['question_id'].to(device)
         else:
             pid_data = None
-        logger.info(torch.sort(torch.unique(q_data))[0])
         assert q_data.max() < self.q_embed.weight.shape[0]
         assert qa_data.max() < self.qa_embed.weight.shape[0]
         
