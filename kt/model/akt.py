@@ -78,20 +78,29 @@ class AKT(nn.Module):
 
     def forward(self, feed_dict):
         # Batch First
-        print(feed_dict)
-        q_data = feed_dict['question_id']
-        
-        if 'skill' in feed_dict.keys():
-            pid_data = feed_dict['skill']
+        q_data = feed_dict['skill_id']
+        qa_data = feed_dict['skill_correct']
+        if 'question_id' in feed_dict.keys():
+            pid_data = feed_dict['question_id']
         else:
             pid_data = None
-        print(q_data.max())
-        print(self.q_embed.weight.shape)
         logger.info(torch.sort(torch.unique(q_data))[0])
         assert q_data.max() < self.q_embed.weight.shape[0]
-        assert q_data.min() >= 0
-        assert qa_data.min() >=0
         assert qa_data.max() < self.qa_embed.weight.shape[0]
+        
+        def _get_second_smallest(tensor):
+            unique_elements = torch.unique(tensor)
+            sorted_unique_elements, _ = torch.sort(unique_elements)
+
+            # Get the second smallest element
+            second_smallest = sorted_unique_elements[1]
+            return second_smallest
+        assert _get_second_smallest(qa_data) > 0
+        assert _get_second_smallest(q_data) > 0
+        assert _get_second_smallest(pid_data) > 0
+        qa_data[qa_data < 0] = 0
+        q_data[q_data < 0] = 0
+        pid_data[pid_data < 0] = 0
         q_embed_data = self.q_embed(q_data)  # BS, seqlen,  d_model# c_ct
 
         assert self.separate_qa
@@ -128,7 +137,7 @@ class AKT(nn.Module):
         concat_q = torch.cat([d_output, q_embed_data], dim=-1)
         output = self.out(concat_q).sum(dim=-1)
         output = torch.sigmoid(output)
-        return output.clone()[:,:-1],c_reg_loss
+        return output.clone()[:,:-1], c_reg_loss
 
 
     def get_hyperparameters(self):

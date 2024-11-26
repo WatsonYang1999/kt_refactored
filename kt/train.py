@@ -32,7 +32,6 @@ class TrainManager:
             batch_size=config['batch_size'],
             shuffle=config['shuffle']
         )
-        print('---------------------------------------')
 
         
         self.valid_loader = DataLoader(
@@ -82,18 +81,27 @@ class TrainManager:
         total_loss = 0.0
         
         for batch in self.train_loader:
-            print(batch)
             from .model.utils import combine_qa_or_sa
             batch['question_correct'] = combine_qa_or_sa(
-                batch['question_id'], 
-                batch['correct'], 
+                batch['question_id'],
+                batch['correct'],
                 self.data_loader.get_q_num()
             )
-            batch = move_batch_to_device(batch,device=self.config['device'])
+            batch['skill_correct'] = combine_qa_or_sa(
+                batch['skill_id'],
+                batch['correct'],
+                self.data_loader.get_s_num()
+            )
+            batch = move_batch_to_device(batch, device=self.config['device'])
             
             # Forward pass
+
             outputs = self.model(batch)
-            loss = self.criterion(outputs, labels)
+            if len(outputs) > 0:
+                pred = outputs[0]
+            else:
+                pred = outputs
+            loss, auc_i, acc_i = self.criterion(pred, batch['correct'])
             
             # Backward and optimize
             self.optimizer.zero_grad()
@@ -117,7 +125,13 @@ class TrainManager:
                 
                 # Forward pass
                 outputs = self.model(inputs)
-                loss = self.criterion(outputs, labels)
+
+                # ToDo : Consider if there are relugarized item to handle
+                if len(outputs) > 0:
+                    pred = outputs[0]
+                else:
+                    pred = outputs
+                loss = self.criterion(pred, labels)
                 
                 total_loss += loss.item()
         

@@ -16,10 +16,6 @@ def combine_qa_or_sa(A: torch.Tensor, B: torch.Tensor, N: float) -> torch.Tensor
     - torch.Tensor: 计算得到的矩阵 C
     """
     # 矩阵计算
-    print('----------------------------------------------------')
-    print(A)
-    print(B)
-    print(N)
     C = A + B * N
 
     # 条件处理：A 或 B 小于 0
