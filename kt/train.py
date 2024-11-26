@@ -121,19 +121,27 @@ class TrainManager:
         with torch.no_grad():
             #ToDo : debugging
             for batch in self.train_loader:
+                from .model.utils import combine_qa_or_sa
+                batch['question_correct'] = combine_qa_or_sa(
+                    batch['question_id'],
+                    batch['correct'],
+                    self.data_loader.get_q_num()
+                )
+                batch['skill_correct'] = combine_qa_or_sa(
+                    batch['skill_id'],
+                    batch['correct'],
+                    self.data_loader.get_s_num()
+                )
                 batch = move_batch_to_device(batch, device=self.config['device'])
-                inputs, labels = batch
-                inputs, labels = inputs.to(self.device), labels.to(self.device)
                 
                 # Forward pass
-                outputs = self.model(inputs)
 
-                # ToDo : Consider if there are relugarized item to handle
+                outputs = self.model(batch)
                 if len(outputs) > 0:
                     pred = outputs[0]
                 else:
                     pred = outputs
-                loss = self.criterion(pred, labels)
+                loss, auc_i, acc_i = self.criterion(pred, batch['correct'])
                 
                 total_loss += loss.item()
         
