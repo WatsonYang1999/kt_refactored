@@ -2,28 +2,15 @@ import argparse
 import json
 
 class KTConfig:
-    def __init__(self, json_file):
-        self.args = self._load_from_json(json_file)
-        self.model_config = self._extract_config_section("model_config")
-        self.train_config = self._extract_config_section("train_config")
-        self.dataset_config = self._extract_config_section("dataset_config")
-
-    def _load_from_json(self, json_file):
-        with open(json_file, 'r') as f:
-            config = json.load(f)
-            # Merge all configurations
-            all_configs = {}
-            for key, section in config.items():
-                if isinstance(section, dict):
-                    all_configs.update(section)
-            return argparse.Namespace(**all_configs)
-
-    def _extract_config_section(self, section_name):
-        """Dynamically extracts a specific configuration section."""
-        with open(json_file, 'r') as f:
-            config = json.load(f)
-            return {k: v for k, v in vars(self.args).items() if k in config.get(section_name, {})}
-
+    def __init__(self, from_args=True, json_file=None):
+        if from_args:
+            self.args = self._parse_args()
+        elif json_file:
+            self.model_config, self.train_config, self.dataset_config = self._load_from_json(json_file)
+            all_configs = {**self.model_config, **self.train_config, **self.dataset_config}
+            self.args = argparse.Namespace(**all_configs)
+        else:
+            raise ValueError("Either from_args must be True or a json_file must be provided.")
         
     def get_model_config(self):
         return self.model_config
@@ -33,7 +20,6 @@ class KTConfig:
     
     def get_train_config(self):
         return self.train_config
-    
 
     def _parse_args(self):
         def str_to_bool(s):
@@ -92,11 +78,8 @@ class KTConfig:
             model_config = config.get('model_config', {})
             train_config = config.get('train_config', {})
             dataset_config = config.get('dataset_config', {})
-
             # Merge all configurations
-            all_configs = {**model_config, **train_config, **dataset_config}
-            return argparse.Namespace(**all_configs)
-            
+            return model_config, train_config, dataset_config
             
     def update_qs(self, q_num, s_num, qs_matrix):
         self.model_config['q_num'] = q_num
@@ -104,4 +87,4 @@ class KTConfig:
         self.model_config['qs_matrix'] = qs_matrix
 # Example usage
 # config_from_args = KTConfig(from_args=True)
-# config_from_json = KTConfig(from_args=False, json_file='config.json')
+config_from_json = KTConfig(from_args=False, json_file='config/config.json')

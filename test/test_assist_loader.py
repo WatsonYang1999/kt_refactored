@@ -12,7 +12,7 @@ class TestAssistment09Loader(unittest.TestCase):
         self.fields_dtype = {
             'order_id': int,
             'user_id': int,
-            'problem_id': int,
+            'question_id': int,
             'correct': int,
             'skill_id': 'Int64',  # Using nullable integer for optional fields
             'skill_name': str,

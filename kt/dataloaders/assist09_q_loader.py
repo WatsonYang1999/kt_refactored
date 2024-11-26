@@ -9,7 +9,6 @@ class Assistment09Loader(BaseLoader):
     """
     Loader for the Assistment 2009 dataset with optional extra field loading.
     """
-
     def __init__(self, file_path='./dataset/assist2009/skill_builder_data_corrected.csv', load_extra_fields=True):
         # Define standard and extra fields with default data types
         fields = ['order_id', 'user_id', 'problem_id', 'correct']
@@ -22,7 +21,13 @@ class Assistment09Loader(BaseLoader):
             'correct': int,
             'skill_id': 'Int64',  # Using nullable integer for optional fields
             'skill_name': str,
-            'overlap_time': float        }
+            'overlap_time': float
+        }
+
+        self.column_name_mapping = {
+            'problem_id': 'question_id',
+            # 添加更多需要替换的列名
+        }
 
         # Add extra fields if load_extra_fields is True
         if load_extra_fields:
@@ -31,45 +36,50 @@ class Assistment09Loader(BaseLoader):
         super().__init__()
 
         # Store the fields and data types in instance variables
-        self.file_path = file_path 
-        self.fields = fields 
-        self.dtypes = dtypes       
+        self.file_path = file_path
+        self.fields = fields
+        self.dtypes = dtypes
         self.load_extra_fields = load_extra_fields
         self.q_key = 'problem_id'
         self.s_key = 'skill_id'
-        
+
         self.q_num = None
         self.s_num = None
         self.qs_matrix = None
-        
+
         self.user_sequences = self._load()
 
     def get_q_num(self):
         if self.q_num is None:
             raise NotImplementedError('q_num not init yet')
         return self.q_num
+
     def get_s_num(self):
         if self.s_num is None:
             raise NotImplementedError('s_num not init yet')
         return self.s_num
-    
+
     def get_qs_matrix(self):
         if self.qs_matrix is None:
             raise NotImplementedError('qs_matrix not init yet')
     
         return self.qs_matrix
-    
+
     def get_qn_sn_qs_matrix(self):
         return (self.get_q_num(), self.get_s_num(), self.get_qs_matrix()) 
+
+    def _remap_pd_column_name(self, df):
+        # 替换列名
+        df.rename(columns=column_name_mapping, inplace=True)
+        return df
 
     def _load(self):
         """Load and clean the Assistment 2009 dataset, returning user sequences."""
         try:
             # Load specified fields with predefined data types
             df = pd.read_csv(self.file_path, usecols=self.fields, dtype={k: self.dtypes[k] for k in self.fields}, encoding='utf-8')
-
-            # ToDo: 
-            df = df.head(50)
+            # ToDo:
+            # df = df.head(50)
             # df = df.sort_values('order_id', ascending=True).dropna().drop_duplicates(subset='order_id')
             df = df.sort_values('order_id', ascending=True).dropna()
 
@@ -78,13 +88,13 @@ class Assistment09Loader(BaseLoader):
             df[self.s_key], _ = pd.factorize(df[self.s_key])
             df[self.q_key] += 1
             df[self.s_key] += 1
-
             self._calculate_qs_relationship(df, q_key=self.q_key, s_key=self.s_key)
 
             logger.info(f'Original Data Count {df.shape[0]}')
             df = df.drop_duplicates(subset='order_id')
             logger.info(f'Drop Duplicate Data Count {df.shape[0]}')
             logger.info(df.columns)
+
             # Handle any additional processing needed for extra fields
             if self.s_key in df.columns:
                 df[self.s_key] = df[self.s_key].fillna(-1).astype(int)  # Fill NaNs for optional fields
@@ -103,15 +113,16 @@ class Assistment09Loader(BaseLoader):
             for _, row in df_user.iterrows():
                 # Create a dictionary of all relevant fields for each interaction
                 interaction = {field: row[field] for field in self.fields if field in df_user.columns}
+                interaction = {self.column_name_mapping.get(k, k): v for k, v in interaction.items()}
                 sequence.append(interaction)
-                # logger.info(interaction)
             user_sequences[uid] = sequence
-        return user_sequences    
-    
+        return user_sequences
+
+
     def _calculate_qs_relationship(self, df: pd.DataFrame, q_key: str, s_key: str):        
         qs_counts = df.groupby([q_key, s_key]).size().reset_index(name='count')
         sq_counts = df.groupby([s_key, q_key]).size().reset_index(name='count')
-        
+
         logger.info(qs_counts)
         logger.info(sq_counts)
 
@@ -132,10 +143,10 @@ class Assistment09Loader(BaseLoader):
 
         q_unique = df[q_key].unique().tolist()
         s_unique = df[s_key].unique().tolist()
-        
-        self.q_num = q_unique
-        self.s_num = s_unique
-        
+
+        self.q_num = len(q_unique)
+        self.s_num = len(s_unique)
+
         self.qs_matrix = np.zeros((len(q_unique) + 1, len(s_unique) + 1), dtype=int)
 
         for _, row in df.iterrows():

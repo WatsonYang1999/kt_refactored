@@ -7,9 +7,11 @@ import math
 import torch.nn.functional as F
 from enum import IntEnum
 import numpy as np
+from kt.logger import KTLogger
 
+
+logger = KTLogger().get_logger()
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
 use_distance = True
 
 class Dim(IntEnum):
@@ -76,14 +78,16 @@ class AKT(nn.Module):
 
     def forward(self, feed_dict):
         # Batch First
-        q_data = feed_dict['question']
-        qa_data = feed_dict['question_answer']
+        print(feed_dict)
+        q_data = feed_dict['question_id']
+        
         if 'skill' in feed_dict.keys():
             pid_data = feed_dict['skill']
         else:
             pid_data = None
         print(q_data.max())
         print(self.q_embed.weight.shape)
+        logger.info(torch.sort(torch.unique(q_data))[0])
         assert q_data.max() < self.q_embed.weight.shape[0]
         assert q_data.min() >= 0
         assert qa_data.min() >=0

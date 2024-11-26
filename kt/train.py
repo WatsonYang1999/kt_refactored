@@ -18,7 +18,7 @@ class TrainManager:
         """
         print(config)
         self.config = config
-        self.device = torch.device("cuda" if config['cuda'] and torch.cuda.is_available() else "cpu")
+        self.device = torch.device(config['device'])
         
         # 初始化模型并加载到设备
         self.model = model.to(self.device)
@@ -26,8 +26,7 @@ class TrainManager:
         self.criterion = self._load_loss_function(config['loss'])
         
         # 加载数据集并创建 DataLoader
-        print('---------------------------------------')
-        print(dataset_loader.get_loader()['train'])
+        self.data_loader = dataset_loader
         self.train_loader = DataLoader(
             UserInteractionDataset(dataset_loader.get_loader()['train'],max_length=config['max_seq_len']),
             batch_size=config['batch_size'],
@@ -84,6 +83,12 @@ class TrainManager:
         
         for batch in self.train_loader:
             print(batch)
+            from .model.utils import combine_qa_or_sa
+            batch['question_correct'] = combine_qa_or_sa(
+                batch['question_id'], 
+                batch['correct'], 
+                self.data_loader.get_q_num()
+            )
             batch = move_batch_to_device(batch,device=self.config['device'])
             
             # Forward pass
