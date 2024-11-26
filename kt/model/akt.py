@@ -78,10 +78,10 @@ class AKT(nn.Module):
 
     def forward(self, feed_dict):
         # Batch First
-        q_data = feed_dict['skill_id']
-        qa_data = feed_dict['skill_correct']
+        q_data = feed_dict['skill_id'].to(device)
+        qa_data = feed_dict['skill_correct'].to(device)
         if 'question_id' in feed_dict.keys():
-            pid_data = feed_dict['question_id']
+            pid_data = feed_dict['question_id'].to(device)
         else:
             pid_data = None
         logger.info(torch.sort(torch.unique(q_data))[0])
