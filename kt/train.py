@@ -120,6 +120,7 @@ class TrainManager:
         
         with torch.no_grad():
             for batch in self.valid_loader:
+                batch = move_batch_to_device(batch, device=self.config['device'])
                 inputs, labels = batch
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
                 
