@@ -120,7 +120,7 @@ class TrainManager:
         
         with torch.no_grad():
             #ToDo : debugging
-            for batch in self.train_loader:
+            for batch in self.valid_loader:
                 from .model.utils import combine_qa_or_sa
                 batch['question_correct'] = combine_qa_or_sa(
                     batch['question_id'],
