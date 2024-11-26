@@ -35,9 +35,9 @@ class TrainManager:
 
         
         self.valid_loader = DataLoader(
-            dataset_loader.get_loader()['test'],
+            UserInteractionDataset(dataset_loader.get_loader()['test'],max_length=config['max_seq_len']),
             batch_size=config['batch_size'],
-            shuffle=False
+            shuffle=config['shuffle']
         )
         
         # 日志文件设置
@@ -119,7 +119,8 @@ class TrainManager:
         total_loss = 0.0
         
         with torch.no_grad():
-            for batch in self.valid_loader:
+            #ToDo : debugging
+            for batch in self.train_loader:
                 batch = move_batch_to_device(batch, device=self.config['device'])
                 inputs, labels = batch
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
