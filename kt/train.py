@@ -157,10 +157,10 @@ class TrainManager:
             # Validation step
             if epoch % 1 == 0 or epoch == self.n_epochs - 1:  # 可以调整验证的频率
                 self.validate(epoch)
-            
+            # ToDo: Update Checkpoint
             # 保存检查点
-            if self.checkpoint_dir and (epoch % 5 == 0 or epoch == self.n_epochs - 1):
-                self._save_checkpoint(epoch)
+            # if self.checkpoint_dir and (epoch % 5 == 0 or epoch == self.n_epochs - 1):
+            #     self._save_checkpoint(epoch)
         
         # 关闭日志文件
         if self.log_file:
